@@ -19,7 +19,7 @@ arcdps_exports arc_exports;
 char* arcvers;
 void dll_init(HANDLE hModule);
 void dll_exit();
-extern "C" __declspec(dllexport) void* get_init_addr(char* arcversionstr, void* imguicontext);
+extern "C" __declspec(dllexport) void* get_init_addr(char* arcversion, ImGuiContext * imguictx, void* id3dd9, HANDLE arcdll, void* mallocfn, void* freefn);
 extern "C" __declspec(dllexport) void* get_release_addr();
 arcdps_exports* mod_init();
 uintptr_t mod_release();
@@ -27,7 +27,7 @@ uintptr_t mod_wnd(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 uintptr_t mod_combat(cbtevent* ev, ag* src, ag* dst, char* skillname, uint64_t id, uint64_t revision);
 uintptr_t mod_imgui(uint32_t not_charsel_or_loading);
 uintptr_t mod_options();
-static int changeExportPath(ImGuiTextEditCallbackData const *data);
+static int changeExportPath(ImGuiInputTextCallbackData const *data);
 void readArcExports();
 void parseIni();
 void writeIni();
@@ -89,9 +89,10 @@ void dll_exit() {
 }
 
 /* export -- arcdps looks for this exported function and calls the address it returns */
-extern "C" __declspec(dllexport) void* get_init_addr(char* arcversionstr, void* imguicontext) {
-	arcvers = arcversionstr;
-	ImGui::SetCurrentContext((ImGuiContext*)imguicontext);
+extern "C" __declspec(dllexport) void* get_init_addr(char* arcversion, ImGuiContext * imguictx, void* id3dd9, HANDLE arcdll, void* mallocfn, void* freefn) {
+	arcvers = arcversion;
+	ImGui::SetCurrentContext((ImGuiContext*)imguictx);
+	ImGui::SetAllocatorFunctions((void* (*)(size_t, void*))mallocfn, (void (*)(void*, void*))freefn); // on imgui 1.80+
 	return mod_init;
 }
 
@@ -107,6 +108,7 @@ arcdps_exports* mod_init()
 	/* for arcdps */
 	memset(&arc_exports, 0, sizeof(arcdps_exports));
 	arc_exports.sig = 0x81004122;//from random.org
+	arc_exports.imguivers = IMGUI_VERSION_NUM;
 	arc_exports.size = sizeof(arcdps_exports);
 	arc_exports.out_name = "Mechanics Log";
 	arc_exports.out_build = __VERSION__;
@@ -438,7 +440,7 @@ uintptr_t mod_options()
     return 0;
 }
 
-static int changeExportPath(ImGuiTextEditCallbackData const *data)
+static int changeExportPath(ImGuiInputTextCallbackData const *data)
 {
 	chart_ui.export_dir = data->Buf;
 }

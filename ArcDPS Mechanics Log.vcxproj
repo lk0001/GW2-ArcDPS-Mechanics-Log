@@ -141,6 +141,8 @@
     <ClCompile Include="src\imgui_demo.cpp" />
     <ClCompile Include="src\imgui_draw.cpp" />
     <ClCompile Include="src\imgui_panels.cpp" />
+    <ClCompile Include="src\imgui_tables.cpp" />
+    <ClCompile Include="src\imgui_widgets.cpp" />
     <ClCompile Include="src\LogEvent.cpp" />
     <ClCompile Include="src\MechanicEntry.cpp" />
     <ClCompile Include="src\MechanicFilter.cpp" />
